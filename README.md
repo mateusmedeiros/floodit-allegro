@@ -19,3 +19,12 @@ PS: I recommend an out-of-tree build, and/or something like `mkdir build && cd b
 ## License
 
 Licensed under MIT License.
+
+
+## Timeline
+
+##### October 7, 2014
+
+Made a matrix with colors and a simple structure to add colors and some structs to encapsulate everything.
+
+![screenshot number one](/screenshot1-07-10-2014.png?raw=true "Matrix")

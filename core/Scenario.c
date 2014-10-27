@@ -9,18 +9,18 @@
 #include "../allegro-shell/Display.h"
 
 
-void __Scenario_draw_to_display__(Scenario* self, Display* display) {
-    al_set_target_backbuffer(display -> inner_display);
+void __Scenario_draw_to_display__(Scenario* self) {
+    al_set_target_backbuffer(self -> display -> inner_display);
 
-    int pixels_per_block_x = (display -> width(display) * MATRIX_BOARD_SIZE) / self -> size.x;
-    int pixels_per_block_y = (display -> height(display) / self -> size.y);
+    int pixels_per_block_x = (self -> display -> width(self -> display) * MATRIX_BOARD_SIZE) / self -> size.x;
+    int pixels_per_block_y = (self -> display -> height(self -> display) / self -> size.y);
 
     //interface
-    al_set_clipping_rectangle(0, 0, (1 - MATRIX_BOARD_SIZE) * display -> width(display), display -> height(display));
+    al_set_clipping_rectangle(0, 0, (1 - MATRIX_BOARD_SIZE) * self -> display -> width(self -> display), self -> display -> height(self -> display));
     al_clear_to_color(al_map_rgba(0,0,0,0));
     //
 
-    int board_pos_x = display -> width(display) - (display -> width(display) * MATRIX_BOARD_SIZE);
+    int board_pos_x = self -> display -> width(self -> display) - (self -> display -> width(self -> display) * MATRIX_BOARD_SIZE);
 
     Block* current_block = self -> first_block;
     int i;
@@ -39,7 +39,7 @@ void __Scenario_draw_to_display__(Scenario* self, Display* display) {
         current_block = current_block -> down;
     }
 
-    al_acknowledge_resize(display -> inner_display);
+    al_acknowledge_resize(self -> display -> inner_display);
 }
 
 
@@ -63,7 +63,7 @@ void __Scenario_destroy__(void* self) {
 }
 
 
-Scenario* new_Scenario(byte columns, byte rows, byte number_of_colors, byte number_of_moves) {
+Scenario* new_Scenario(byte columns, byte rows, byte number_of_colors, byte number_of_moves, Display* display) {
     Scenario* object = malloc(sizeof(Scenario));
     object -> number_of_colors = number_of_colors;
     object -> number_of_moves = number_of_moves;
@@ -71,6 +71,7 @@ Scenario* new_Scenario(byte columns, byte rows, byte number_of_colors, byte numb
     object -> size.y = rows;
 
     object -> first_block = new_Block(Colors[mt_lrand() % number_of_colors], NULL, NULL, NULL, NULL);
+    object -> display = display;
 
     Block* current_block = object -> first_block;
     int i;

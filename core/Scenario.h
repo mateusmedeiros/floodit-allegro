@@ -19,11 +19,12 @@ typedef struct Scenario {
     } size;
 
     Block* first_block;
+    Display* display;
 
     void (*destroy)(void*);
-    void (*draw_to_display)(struct Scenario*, Display*);
+    void (*draw_to_display)(struct Scenario*);
 } Scenario;
 
-Scenario* new_Scenario(byte columns, byte rows, byte number_of_colors, byte number_of_moves);
+Scenario* new_Scenario(byte columns, byte rows, byte number_of_colors, byte number_of_moves, Display* display);
 
 #endif

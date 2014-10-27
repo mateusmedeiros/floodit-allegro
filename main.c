@@ -8,8 +8,9 @@
 //recursos que necessitam de inicialização e desconstrução
 Display* display;
 EventQueue* queue;
+Scenario* scenario;
 
-#include "init.h"
+#include "config-init.h"
 #include "destroy.h"
 
 int main(void) {
@@ -17,12 +18,12 @@ int main(void) {
 
     display = new_Display(800, 600);
     queue = new_EventQueue(display);
-    Scenario* scenario = new_Scenario(15,15,3,25);
+    scenario = new_Scenario(18,10,3,25, display);
 
     while(true) {
         queue -> wait_for_event(queue);
 
-        scenario -> draw_to_display(scenario, display);
+        scenario -> draw_to_display(scenario);
         al_flip_display();
 
         if(queue -> current_event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {

@@ -1,5 +1,6 @@
 #include <setjmp.h>
 #include <allegro5/allegro.h>
+#include <allegro5/allegro_native_dialog.h>
 #include "allegro-shell/Display.h"
 #include "allegro-shell/EventQueue.h"
 #include "core/constants.h"
@@ -9,17 +10,17 @@
 #include "init.h"
 
 jmp_buf global_buffer;
+Display* display = NULL;
 
 int main(void) {
-    Display* display = NULL;
     EventQueue* queue = NULL;
-    /*Scenario* scenario;*/
+    Scenario* scenario = NULL;
     Menu* menu = NULL;
     int exception_code;
 
-    init();
-
     if(!(exception_code = setjmp(global_buffer))) {
+
+        init();
 
         display = new_Display(800, 600);
         queue = new_EventQueue(display);
@@ -31,6 +32,7 @@ int main(void) {
             queue -> wait_for_event(queue);
 
             menu -> draw_to_display(menu);
+            /*scenario -> draw_to_display(scenario);*/
             al_flip_display();
 
             if(queue -> current_event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
@@ -51,7 +53,9 @@ int main(void) {
     if(queue != NULL) {
         queue -> destroy(queue);
     }
-    /*scenario        -> destroy(scenario);*/
+    if(scenario != NULL) {
+        scenario -> destroy(scenario);
+    }
 
     return exception_code;
 }

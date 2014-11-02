@@ -9,6 +9,7 @@
 #include "constants.h"
 #include "../mtwist/mtwist.h"
 #include "../shell/colors.h"
+#include "../shell/utils.h"
 #include "../allegro-shell/Display.h"
 #include "../global.h"
 
@@ -64,11 +65,16 @@ Menu* new_Menu(Display* display, ...) {
     object -> number_of_entries = i - 1;
     object -> selected_entry = 0;
 
+    if(!file_exists(DEFAULT_FONT_PATH)){
+        va_end(arguments);
+        longjmp(global_buffer, NECESSARY_RESOURCE_NOT_FOUND);
+    }
+
     font = al_load_font(DEFAULT_FONT_PATH, 35, 0);
 
     if(font == NULL) {
         va_end(arguments);
-        longjmp(global_buffer, NECESSARY_RESOURCE_NOT_FOUND);
+        longjmp(global_buffer, ALLEGRO_COMPONENT_INITIALIZATION_FAILED);
     }
 
     object -> font = font;

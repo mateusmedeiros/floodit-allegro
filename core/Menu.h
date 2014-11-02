@@ -3,7 +3,6 @@
 
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_font.h>
-#include <stdint.h>
 
 #include "Block.h"
 #include "../shell/utils.h"

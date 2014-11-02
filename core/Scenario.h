@@ -2,7 +2,6 @@
 #define CORE_SCENARIO_H
 
 #include <allegro5/allegro.h>
-#include <stdint.h>
 
 #include "Block.h"
 #include "../shell/utils.h"

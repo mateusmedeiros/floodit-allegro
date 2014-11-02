@@ -27,6 +27,7 @@ file(GLOB_RECURSE HEADER_LIST "*.h")
 add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADER_LIST})
 
 target_link_libraries(${PROJECT_NAME} liballegro.so)
+target_link_libraries(${PROJECT_NAME} liballegro_dialog.so)
 target_link_libraries(${PROJECT_NAME} liballegro_font.so)
 target_link_libraries(${PROJECT_NAME} liballegro_ttf.so)
 

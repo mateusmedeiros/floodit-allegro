@@ -1,15 +1,17 @@
 #include <allegro5/allegro.h>
 #include <stdlib.h>
-
+#include <setjmp.h>
+#include "../core/constants.h"
+#include "../global.h"
 
 #include "Display.h"
 
 int __Display_height__(Display* self) {
-    al_get_display_height(self -> inner_display);
+    return al_get_display_height(self -> inner_display);
 }
 
 int __Display_width__(Display* self) {
-    al_get_display_width(self -> inner_display);
+    return al_get_display_width(self -> inner_display);
 }
 
 void __Display_destroy__(void* self) {
@@ -26,6 +28,10 @@ Display* new_Display(int width, int height) {
     object -> height_value = height;
     object -> width_value = width;
     object -> inner_display = al_create_display(width, height);
+
+    if(object -> inner_display == NULL) {
+        longjmp(global_buffer, ALLEGRO_COMPONENT_INITIALIZATION_FAILED);
+    }
 
     object -> height = __Display_height__;
     object -> width = __Display_width__;

@@ -1,9 +1,9 @@
-#include <stdint.h>
-#include <string.h>
 #include <stdio.h>
-#include "../core/constants.h"
 #include <allegro5/allegro.h>
+#include <allegro5/allegro_native_dialog.h>
+#include "../core/constants.h"
 #include "../shell/colors.h"
+#include "../global.h"
 
 ALLEGRO_COLOR get_allegro_color(Color color) {
     return al_map_rgba((color & 0xFF000000) >> 24, /* R */
@@ -21,13 +21,34 @@ uint32_t to_little_endian(uint32_t bytes) {
     return b1 | (((uint32_t) b2) << 8) | (((uint32_t) b3) << 16) | (((uint32_t) b4) << 24);
 }
 
+int file_exists(const char* path) {
+    FILE* file;
+
+    file = fopen(path, "r");
+    if(file != NULL) {
+        fclose(file);
+        return 1;
+    }
+
+    return 0;
+}
+
 void print_error(Exception ex) {
     switch(ex) {
         case NECESSARY_RESOURCE_NOT_FOUND:
-            printf("%s", "A necessary resource was not found. (font/sound/bitmap)?");
+            al_show_native_message_box(display -> inner_display, "Error!", "Flood-it has failed to initialize!",
+                                       "A necessary resource was not found. (font/sound/bitmap)?",
+                                       NULL, ALLEGRO_MESSAGEBOX_ERROR);
+            break;
+        case ALLEGRO_COMPONENT_INITIALIZATION_FAILED:
+            al_show_native_message_box(display -> inner_display, "Error!", "Flood-it has failed to initialize!",
+                                       "Allegro or one of it's components failed on initialization",
+                                       NULL, ALLEGRO_MESSAGEBOX_ERROR);
             break;
         default:
-            printf("%s", "Undefined exception");
+            al_show_native_message_box(display -> inner_display, "Error!", "Flood-it has failed to initialize!",
+                                       "Undefined exception",
+                                       NULL, ALLEGRO_MESSAGEBOX_ERROR);
             break;
     }
 }

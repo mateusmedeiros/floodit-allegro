@@ -36,5 +36,6 @@
 
 ALLEGRO_COLOR get_allegro_color(Color color);
 void print_error(Exception ex);
+int file_exists(const char* path);
 
 #endif

@@ -23,8 +23,14 @@ Licensed under MIT License.
 
 ## Timeline
 
+##### November 1, 2014
+
+Menu struct with varying size. If I do have the time later, I intend to implement mouse support, resizing, relative positioning and relative size and stuff like that. Since I didn't want to use something more besides allegro, I'll have to do some gymnastics with bitmaps for that, and the menu won't be super high wuality, but at least it will resize with the window. For now it's absolute positioning though. Beauty come later, functionalities first.
+
+![screenshot number two](/screenshots/screenshot2.png?raw=true "Menus")
+
 ##### October 7, 2014
 
 Made a matrix with colors and a simple structure to add colors and some structs to encapsulate everything.
 
-![screenshot number one](/screenshot1-07-10-2014.png?raw=true "Matrix")
+![screenshot number one](/screenshots/screenshot1.png?raw=true "Matrix")

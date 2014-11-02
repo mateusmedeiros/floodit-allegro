@@ -1,3 +1,16 @@
+#define MT_NO_INLINE
+#define MT_NO_LONGLONG
+
+#ifndef lint
+#ifdef __GNUC__
+#define ATTRIBUTE(attrs) __attribute__(attrs)
+#else
+#define ATTRIBUTE(attrs)
+#endif
+static char Rcs_Id[] ATTRIBUTE((used)) =
+    "$Id: mtwist.c,v 1.28 2014-01-23 21:11:42-08 geoff Exp $";
+#endif
+
 /*
  * C library functions for generating pseudorandom numbers using the
  * Mersenne Twist algorithm.  See M. Matsumoto and T. Nishimura,
@@ -7,30 +20,17 @@
  *
  * The Web page on the Mersenne Twist algorithm is at:
  *
- * http://www.math.keio.ac.jp/~matumoto/emt.html
+ * http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html
  *
- * These functions were written by Geoffrey H. Kuenning, Claremont, CA.
+ * These functions were written by Geoff Kuenning, Claremont, CA.
  *
- * IMPORTANT NOTE: the Makefile must define two machine-specific
- * variables to get optimum features and performance:
+ * IMPORTANT NOTE: this implementation assumes a modern compiler.  In
+ * particular, it assumes that the "inline" keyword is available, and
+ * that the "inttypes.h" header file is present.
  *
- *	MT_NO_INLINE	should be defined if the compiler doesn't support
- *			the "inline" keyword.
- *	MT_NO_LONGLONG	should be defined if the compiler doesn't support a
- *			"long long" type for 64-bit integers
- *	MT_MACHINE_BITS	must be either 32 or 64, reflecting the natural
- *			size of the processor registers.  If undefined, it
- *			will default to 32.
- *
- * The first two variables above are defined in an inverted sense
- * because I expect that most compilers will support inline and
- * long-long.  By inverting the sense, this common case will require
- * no special compiler flags.
- *
- * IMPORTANT NOTE: this software assumes that the inherent width of a
- * "long" is 32 bits.  If you are running on a machine that uses
- * 64-bit longs, some of the declarations and code will have to be
- * modified.
+ * IMPORTANT NOTE: this software requires access to a 32-bit type.
+ * The Mersenne Twist algorithms are not guaranteed to produce correct
+ * results with a 64-bit type.
  *
  * This software is based on LGPL-ed code by Takuji Nishimura.  It has
  * also been heavily influenced by code written by Shawn Cokus, and
@@ -51,6 +51,43 @@
  * Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
  * $Log: mtwist.c,v $
+ * Revision 1.28  2014-01-23 21:11:42-08  geoff
+ * Fix an obsolete gettimeofday call
+ *
+ * Revision 1.27  2013-06-12 23:22:03-07  geoff
+ * Validity-check state pointer when saving.
+ *
+ * Revision 1.26  2013-01-01 01:18:52-08  geoff
+ * Fix a lot of comiler warnings.  Try to fall back to /dev/random if
+ * /dev/urandom doesn't exist.
+ *
+ * Revision 1.25  2012-12-30 16:24:49-08  geoff
+ * Use gcc attributes to suppress warnings on Rcs_Id.  Also get rid of
+ * most of the table of contents, to suppress a different gcc warning.
+ * Fix mts_seed and mts_goodseed to return the 32-bit seeds they chose.
+ * Fix all three /dev/Xrandom seeding functions to use only the entropy
+ * they need, rather than letting stdio eat far more than necessary.
+ * (Thanks to Markus Armbruster for all three ideas.)
+ *
+ * Revision 1.24  2011-02-18 00:49:12-08  geoff
+ * Fix a (harmless) typecasting error in mts_bestseed.  Thanks to Waclaw
+ * Kusnierczyk for pointing it out.
+ *
+ * Revision 1.23  2010-12-11 00:28:18+13  geoff
+ * Add support for GENERATE_CODE_IN_HEADER.  Fix the URL for the original
+ * Web page.
+ *
+ * Revision 1.22  2010-06-24 20:53:59+12  geoff
+ * Switch to using types and formats from inttypes.h.  Get rid of all
+ * compilation options.
+ *
+ * Revision 1.21  2010-06-24 00:29:38-07  geoff
+ * Correctly save and restore the state vector even if longs are wider
+ * than 32 bits.
+ *
+ * Revision 1.20  2007-10-26 00:21:06-07  geoff
+ * Use the new mt_u32bit_t type.
+ *
  * Revision 1.19  2003/09/11 05:55:19  geoff
  * Get rid of some minor compiler warnings.
  *
@@ -147,6 +184,7 @@
 #define WIN32
 #endif /* _WIN32 */
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef WIN32
@@ -163,62 +201,18 @@
  * aren't supported or because somebody might want to take a pointer
  * to a function.  We do so with a couple of careful #defines.
  */
-#undef MT_NO_INLINE			/* Ask for code to be compiled */
 #define MT_INLINE			/* Disable the inline keyword */
 #define MT_EXTERN			/* Generate real code for functions */
+#undef MT_GENERATE_CODE_IN_HEADER
+#define MT_GENERATE_CODE_IN_HEADER 1	/* Generate code when #including */
 
 #include "mtwist.h"
 
 /*
- * Table of contents:
+ * Table of (non-global) contents:
  */
-void			mts_mark_initialized(mt_state* state);
-					/* Mark a PRNG state as initialized */
-void			mts_seed32(mt_state* state, unsigned long seed);
-					/* Set random seed for any generator */
-void			mts_seed32new(mt_state* state, unsigned long seed);
-					/* Set random seed for any generator */
-void			mts_seedfull(mt_state* state,
-			  unsigned long seeds[MT_STATE_SIZE]);
-					/* Set complicated seed for any gen. */
-void			mts_seed(mt_state* state);
-					/* Choose seed from random input */
-void			mts_goodseed(mt_state* state);
-					/* Choose seed from more random */
-					/* ..input than mts_seed */
-static void		mts_devseed(mt_state* state, char* seed_dev);
+static uint32_t		mts_devseed(mt_state* state, char* seed_dev);
 					/* Choose seed from a device */
-void			mts_bestseed(mt_state* state);
-					/* Choose seed from extremely random */
-					/* ..input (can be *very* slow) */
-void			mts_refresh(mt_state* state);
-					/* Generate 624 more random values */
-int			mts_savestate(FILE* statefile, mt_state* state);
-					/* Save state to a file (ASCII) */
-int			mts_loadstate(FILE* statefile, mt_state* state);
-					/* Load state from a file (ASCII) */
-
-void			mt_seed32(unsigned long seed);
-					/* Set random seed for default gen. */
-void			mt_seed32new(unsigned long seed);
-					/* Set random seed for default gen. */
-void			mt_seedfull(unsigned long seeds[MT_STATE_SIZE]);
-					/* Set complicated seed for default */
-void			mt_seed(void);	/* Choose seed from random input */
-void			mt_goodseed(void);
-					/* Choose seed from more random */
-					/* ..input than mts_seed */
-void			mt_bestseed(void);
-					/* Choose seed from extremely random */
-					/* ..input (can be *very* slow) */
-extern mt_state*	mt_getstate(void);
-					/* Get current state of default */
-					/* ..generator */
-int			mt_savestate(FILE* statefile);
-					/* Save state to a file (ASCII) */
-int			mt_loadstate(FILE* statefile);
-					/* Load state from a file (ASCII) */
-
 
 /*
  * The following values are fundamental parameters of the algorithm.
@@ -242,7 +236,7 @@ int			mt_loadstate(FILE* statefile);
 					/* ..stored into the state space. */
 
 /*
- * Width of a long.  Don't change this even if your longs are 64 bits.
+ * Width of an unsigned int.  Don't change this even if your ints are 64 bits.
  */
 #define BIT_WIDTH	32		/* Work with 32-bit words */
 
@@ -283,7 +277,7 @@ int			mt_loadstate(FILE* statefile);
  */
 #define KNUTH_MULTIPLIER_NEW \
 			1812433253ul
-#define KNUTH_SHIFT	30		/* Even on a 64-bit machine!*/
+#define KNUTH_SHIFT	30		/* Even on a 64-bit machine! */
 
 /*
  * Default 32-bit random seed if mts_seed32 wasn't called
@@ -327,7 +321,7 @@ double			mt_64_to_double;
  * array.  The chosen bit is used as an index into the following vector,
  * which produces either zero or MATRIX_A and thus the desired effect.
  */
-static unsigned long	matrix_decider[2] =
+static uint32_t	matrix_decider[2] =
 			  {0x0, MATRIX_A};
 
 /*
@@ -379,7 +373,7 @@ void mts_mark_initialized(
  */
 void mts_seed32(
     mt_state*		state,		/* State vector to initialize */
-    unsigned long	seed)		/* 32-bit seed to start from */
+    uint32_t		seed)		/* 32-bit seed to start from */
     {
     int			i;		/* Loop index */
 
@@ -389,7 +383,7 @@ void mts_seed32(
     /*
      * Fill the state vector using Knuth's PRNG.  Be sure to mask down
      * to 32 bits in case we're running on a machine with 64-bit
-     * longs.
+     * ints.
      */
     state->statevec[MT_STATE_SIZE - 1] = seed & 0xffffffff;
     for (i = MT_STATE_SIZE - 2;  i >= 0;  i--)
@@ -415,15 +409,15 @@ void mts_seed32(
  */
 void mts_seed32new(
     mt_state*		state,		/* State vector to initialize */
-    unsigned long	seed)		/* 32-bit seed to start from */
+    uint32_t		seed)		/* 32-bit seed to start from */
     {
     int			i;		/* Loop index */
-    unsigned long	nextval;	/* Next value being calculated */
+    uint32_t		nextval;	/* Next value being calculated */
 
     /*
      * Fill the state vector using Knuth's PRNG.  Be sure to mask down
      * to 32 bits in case we're running on a machine with 64-bit
-     * longs.
+     * ints.
      */
     state->statevec[MT_STATE_SIZE - 1] = seed & 0xffffffffUL;
     for (i = MT_STATE_SIZE - 2;  i >= 0;  i--)
@@ -448,7 +442,7 @@ void mts_seed32new(
     }
 
 /*
- * Initialize a Mersenne Twist RNG from a 624-long seed.
+ * Initialize a Mersenne Twist RNG from a 624-int seed.
  *
  * The 32-bit seeding routine given by Matsumoto and Nishimura has the
  * drawback that there are only 2^32 different PRNG sequences that can be
@@ -466,7 +460,7 @@ void mts_seed32new(
  */
 void mts_seedfull(
     mt_state*		state,		/* State vector to initialize */
-    unsigned long	seeds[MT_STATE_SIZE])
+    uint32_t		seeds[MT_STATE_SIZE])
 					/* Seed array to start from */
     {
     int			had_nz = 0;	/* NZ if at least one NZ seen */
@@ -502,10 +496,10 @@ void mts_seedfull(
  * of the current time if /dev/urandom is not available.  In any case,
  * only provides 32 bits of entropy.
  */
-void mts_seed(
+uint32_t mts_seed(
     mt_state*		state)		/* State vector to seed */
     {
-    mts_devseed(state, DEVURANDOM);
+    return mts_devseed(state, DEVURANDOM);
     }
 
 /*
@@ -514,10 +508,10 @@ void mts_seed(
  * of the current time if /dev/random is not available.  In any case,
  * only provides 32 bits of entropy.
  */
-void mts_goodseed(
+uint32_t mts_goodseed(
     mt_state*		state)		/* State vector to seed */
     {
-    mts_devseed(state, DEVRANDOM);
+    return mts_devseed(state, DEVRANDOM);
     }
 
 /*
@@ -525,7 +519,7 @@ void mts_goodseed(
  * If that device can't be opened, use the lower 32 bits from the
  * current time.
  */
-static void mts_devseed(
+static uint32_t mts_devseed(
     mt_state*		state,		/* State vector to seed */
     char*		seed_dev)	/* Device to seed from */
     {
@@ -534,26 +528,33 @@ static void mts_devseed(
     FILE*		ranfile;	/* Access to device */
     union
 	{
-	char		ranbuffer[sizeof (unsigned long)];
+	char		ranbuffer[sizeof (uint32_t)];
 					/* Space for reading random int */
-	unsigned long	randomvalue;	/* Random value for initialization */
+	uint32_t	randomvalue;	/* Random value for initialization */
 	}
 			randomunion;	/* Union for reading random int */
 #ifdef WIN32
     struct _timeb	tb;		/* Time of day (Windows mode) */
 #else /* WIN32 */
-    #include <sys/time.h>
-    struct timeval tv;		/* Time of day */
+    struct timeval	tv;		/* Time of day */
 #endif /* WIN32 */
 
     ranfile = fopen(seed_dev, "rb");
+    /*
+     * Some machines have /dev/random but not /dev/urandom.  On those
+     * machines, /dev/random is nonblocking, so we'll try it before we
+     * fall back to using the time.
+     */
+    if (ranfile == NULL)
+	ranfile = fopen(DEVRANDOM, "rb");
     if (ranfile != NULL)
 	{
+	setbuf(ranfile, NULL);
 	for (nextbyte = 0;
 	  nextbyte < (int)sizeof randomunion.ranbuffer;
 	  nextbyte += bytesread)
 	    {
-	    bytesread = fread(&randomunion.ranbuffer[nextbyte], 1,
+	    bytesread = fread(&randomunion.ranbuffer[nextbyte], (size_t)1,
 	      sizeof randomunion.ranbuffer - nextbyte, ranfile);
 	    if (bytesread == 0)
 		break;
@@ -562,7 +563,7 @@ static void mts_devseed(
 	if (nextbyte == sizeof randomunion.ranbuffer)
 	    {
 	    mts_seed32new(state, randomunion.randomvalue);
-	    return;
+	    return randomunion.randomvalue;
 	    }
 	}
 
@@ -586,12 +587,13 @@ static void mts_devseed(
     randomunion.randomvalue = tv.tv_sec * 1000000 + tv.tv_usec;
 #endif /* WIN32 */
     mts_seed32new(state, randomunion.randomvalue);
+    return randomunion.randomvalue;
     }
 
 /*
  * Choose a seed based on the best random input available.  Prefers
  * /dev/random as a source of random numbers, and reads the entire
- * 624-long state from that device.  Because of this approach, the
+ * 624-int state from that device.  Because of this approach, the
  * function can take a long time (in real time) to complete, since
  * /dev/random may have to wait quite a while before it can provide
  * that much randomness.  If /dev/random is unavailable, falls back to
@@ -615,7 +617,7 @@ void mts_bestseed(
       nextbyte < (int)sizeof state->statevec;
       nextbyte += bytesread)
 	{
-	bytesread = fread((char *)&state->statevec + nextbyte, 1,
+	bytesread = fread((char *)&state->statevec[0] + nextbyte, (size_t)1,
 	  sizeof state->statevec - nextbyte, ranfile);
 	if (bytesread == 0)
 	    {
@@ -627,6 +629,7 @@ void mts_bestseed(
 	    return;
 	    }
 	}
+    fclose(ranfile);
     }
 
 /*
@@ -640,11 +643,11 @@ void mts_refresh(
     register mt_state*	state)		/* State for the PRNG */
     {
     register int	i;		/* Index into the state */
-    register unsigned long*
+    register uint32_t*
 			state_ptr;	/* Next place to get from state */
-    register unsigned long
+    register uint32_t
 			value1;		/* Scratch val picked up from state */
-    register unsigned long
+    register uint32_t
 			value2;		/* Scratch val picked up from state */
 
     /*
@@ -809,9 +812,20 @@ int mts_savestate(
     if (!state->initialized)
 	mts_seed32(state, DEFAULT_SEED32_OLD);
 
+    /*
+     * Ensure the state pointer is valid.
+     */
+    if (state->stateptr < 0  ||  state->stateptr > MT_STATE_SIZE)
+	{
+	fprintf(stderr,
+	  "Mtwist internal: Trying to write invalid state pointer %d\n",
+	  state->stateptr);
+	mts_refresh(state);
+	}
+
     for (i = MT_STATE_SIZE;  --i >= 0;  )
 	{
-	if (fprintf(statefile, "%lu ", state->statevec[i]) < 0)
+	if (fprintf(statefile, "%" PRIu32 " ", state->statevec[i]) < 0)
 	    return 0;
 	}
 
@@ -837,7 +851,7 @@ int mts_loadstate(
 
     for (i = MT_STATE_SIZE;  --i >= 0;  )
 	{
-	if (fscanf(statefile, "%lu", &state->statevec[i]) != 1)
+	if (fscanf(statefile, "%" SCNu32, &state->statevec[i]) != 1)
 	    return 0;
 	}
 
@@ -865,7 +879,7 @@ int mts_loadstate(
  * See mts_seed32 for full commentary.
  */
 void mt_seed32(
-    unsigned long	seed)		/* 32-bit seed to start from */
+    uint32_t		seed)		/* 32-bit seed to start from */
     {
     mts_seed32(&mt_default_state, seed);
     }
@@ -876,18 +890,18 @@ void mt_seed32(
  * See mts_seed32new for full commentary.
  */
 void mt_seed32new(
-    unsigned long	seed)		/* 32-bit seed to start from */
+    uint32_t		seed)		/* 32-bit seed to start from */
     {
     mts_seed32new(&mt_default_state, seed);
     }
 
 /*
- * Initialize a Mersenne Twist RNG from a 624-long seed.
+ * Initialize a Mersenne Twist RNG from a 624-int seed.
  *
  * See mts_seedfull for full commentary.
  */
 void mt_seedfull(
-    unsigned long	seeds[MT_STATE_SIZE])
+    uint32_t		seeds[MT_STATE_SIZE])
     {
     mts_seedfull(&mt_default_state, seeds);
     }
@@ -895,23 +909,23 @@ void mt_seedfull(
 /*
  * Initialize the PRNG from random input.  See mts_seed.
  */
-void mt_seed()
+uint32_t mt_seed(void)
     {
-    mts_seed(&mt_default_state);
+    return mts_seed(&mt_default_state);
     }
 
 /*
  * Initialize the PRNG from random input.  See mts_goodseed.
  */
-void mt_goodseed()
+uint32_t mt_goodseed(void)
     {
-    mts_goodseed(&mt_default_state);
+    return mts_goodseed(&mt_default_state);
     }
 
 /*
  * Initialize the PRNG from random input.  See mts_bestseed.
  */
-void mt_bestseed()
+void mt_bestseed(void)
     {
     mts_bestseed(&mt_default_state);
     }
@@ -922,7 +936,7 @@ void mt_bestseed()
  * restoration.  The state should not be modified; instead, it should
  * be reused later as a parameter to one of the mts_xxx functions.
  */
-extern mt_state* mt_getstate()
+mt_state* mt_getstate(void)
     {
     return &mt_default_state;
     }

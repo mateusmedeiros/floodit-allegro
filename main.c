@@ -1,38 +1,58 @@
+#include <setjmp.h>
 #include <allegro5/allegro.h>
 #include "allegro-shell/Display.h"
 #include "allegro-shell/EventQueue.h"
+#include "core/constants.h"
 #include "core/Scenario.h"
-#include "core/utils.h"
+#include "core/Menu.h"
+#include "shell/utils.h"
+#include "init.h"
 
-
-//recursos que necessitam de inicialização e desconstrução
-Display* display;
-EventQueue* queue;
-Scenario* scenario;
-
-#include "config-init.h"
-#include "destroy.h"
+jmp_buf global_buffer;
 
 int main(void) {
-    config_init();
+    Display* display = NULL;
+    EventQueue* queue = NULL;
+    /*Scenario* scenario;*/
+    Menu* menu = NULL;
+    int exception_code;
 
-    display = new_Display(800, 600);
-    queue = new_EventQueue(display);
-    scenario = new_Scenario(18,10,3,25, display);
+    init();
 
-    while(true) {
-        queue -> wait_for_event(queue);
+    if(!(exception_code = setjmp(global_buffer))) {
 
-        scenario -> draw_to_display(scenario);
-        al_flip_display();
+        display = new_Display(800, 600);
+        queue = new_EventQueue(display);
 
-        if(queue -> current_event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
-            break;
+        /*scenario = new_Scenario(18,10,3,25, display);*/
+        menu = new_Menu(display, "New game", "Load game", "Highest scores", "Exit", NULL);
+
+        while(true) {
+            queue -> wait_for_event(queue);
+
+            menu -> draw_to_display(menu);
+            al_flip_display();
+
+            if(queue -> current_event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
+                break;
+            }
         }
     }
 
-    free_resources();
+    /* if any exception happened */
+    if(exception_code) {
+        print_error(exception_code);
+    }
 
-    return 0;
+    /* cleanup */
+    if(display != NULL) {
+        display -> destroy(display);
+    }
+    if(queue != NULL) {
+        queue -> destroy(queue);
+    }
+    /*scenario        -> destroy(scenario);*/
+
+    return exception_code;
 }
 

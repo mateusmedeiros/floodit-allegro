@@ -14,7 +14,10 @@ int __Display_width__(Display* self) {
 
 void __Display_destroy__(void* self) {
     al_destroy_display(((Display*)self) -> inner_display);
+    ((Display*)self) -> inner_display = NULL;
+
     free((Display*)self);
+    self = NULL;
 }
 
 

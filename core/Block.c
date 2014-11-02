@@ -6,16 +6,17 @@
 
 void __Block_destroy__(void* self) {
     free((Block*)self);
+    self = NULL;
 }
 
 
 Block* new_Block(Color color, Block* up, Block* down, Block* right, Block* left) {
     Block* object = malloc(sizeof(Block));
 
-    ALLEGRO_COLOR allegro_color = al_map_rgba((color & 0xFF000000) >> 24, // R
-                                              (color & 0x00FF0000) >> 16, // G
-                                              (color & 0x0000FF00) >> 8,  // B
-                                              (color & 0x000000FF) >> 0); // A
+    ALLEGRO_COLOR allegro_color = al_map_rgba((color & 0xFF000000) >> 24, /* R */
+                                              (color & 0x00FF0000) >> 16, /* G */
+                                              (color & 0x0000FF00) >> 8,  /* B */
+                                              (color & 0x000000FF) >> 0); /* A */
     object -> color = allegro_color;
     object -> up = up;
     object -> down = down;

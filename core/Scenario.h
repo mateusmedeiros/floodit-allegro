@@ -5,17 +5,16 @@
 #include <stdint.h>
 
 #include "Block.h"
+#include "../shell/utils.h"
 #include "../allegro-shell/Display.h"
 
-typedef uint8_t byte;
-
 typedef struct Scenario {
-    byte number_of_colors;
-    byte number_of_moves;
+    uint8 number_of_colors;
+    uint8 number_of_moves;
 
     struct size {
-        byte x;
-        byte y;
+        uint8 x;
+        uint8 y;
     } size;
 
     Block* first_block;
@@ -25,6 +24,6 @@ typedef struct Scenario {
     void (*draw_to_display)(struct Scenario*);
 } Scenario;
 
-Scenario* new_Scenario(byte columns, byte rows, byte number_of_colors, byte number_of_moves, Display* display);
+Scenario* new_Scenario(uint8 columns, uint8 rows, uint8 number_of_colors, uint8 number_of_moves, Display* display);
 
 #endif

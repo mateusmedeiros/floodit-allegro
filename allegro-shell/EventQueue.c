@@ -1,8 +1,6 @@
 #include <allegro5/allegro.h>
 #include <stdlib.h>
-#include <setjmp.h>
-#include "../core/constants.h"
-#include "../global.h"
+#include "../shell/exceptions.h"
 
 #include "EventQueue.h"
 #include "Display.h"
@@ -29,12 +27,13 @@ void __EventQueue_destroy__(void* self) {
 EventQueue* new_EventQueue(Display* display) {
     EventQueue* object = malloc(sizeof(EventQueue));
     ALLEGRO_TIMER* timer;
+    ALLEGRO_EVENT_SOURCE* keyboard_source;
     int refresh_rate;
 
     object -> inner_queue = al_create_event_queue();
 
     if(object -> inner_queue == NULL) {
-        longjmp(global_buffer, ALLEGRO_COMPONENT_INITIALIZATION_FAILED);
+        longjmp(__exception_buffer, ALLEGRO_COMPONENT_INITIALIZATION_FAILED);
     }
 
     object -> wait_for_event = __EventQueue_wait_for_event__;
@@ -42,13 +41,18 @@ EventQueue* new_EventQueue(Display* display) {
     object -> destroy = __EventQueue_destroy__;
 
     object -> add_source(object, al_get_display_event_source(display -> inner_display));
-    object -> add_source(object, al_get_keyboard_event_source());
+
+    keyboard_source = al_get_keyboard_event_source();
+    if(keyboard_source == NULL) {
+        throw(KEYBOARD_NOT_PRESENT);
+    }
+    object -> add_source(object, keyboard_source);
 
     refresh_rate = al_get_display_refresh_rate(display -> inner_display);
     timer = al_create_timer(1.0 / refresh_rate);
 
     if(timer == NULL) {
-        longjmp(global_buffer, ALLEGRO_COMPONENT_INITIALIZATION_FAILED);
+        longjmp(__exception_buffer, ALLEGRO_COMPONENT_INITIALIZATION_FAILED);
     }
 
     object -> add_source(object, al_get_timer_event_source(timer));

@@ -4,7 +4,7 @@
 #include <setjmp.h>
 #include "allegro-shell/Display.h"
 
-extern jmp_buf global_buffer;
 extern Display* display;
+extern Configuration configuration;
 
 #endif

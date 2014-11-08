@@ -20,6 +20,9 @@ list(APPEND SRC_LIST ${SRC_LIST_APPEND})
 aux_source_directory(shell SRC_LIST_APPEND)
 list(APPEND SRC_LIST ${SRC_LIST_APPEND})
 
+aux_source_directory(jsmn SRC_LIST_APPEND)
+list(APPEND SRC_LIST ${SRC_LIST_APPEND})
+
 include_directories(/usr/include/allegro5)
 link_directories(/usr/lib)
 
@@ -33,3 +36,4 @@ target_link_libraries(${PROJECT_NAME} liballegro_ttf.so)
 
 
 file(COPY resources DESTINATION .)
+file(COPY config.dad DESTINATION .)

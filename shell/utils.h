@@ -1,8 +1,9 @@
-#ifndef CORE_UTILS_H
-#define CORE_UTILS_H
+#ifndef SHELL_UTILS_H
+#define SHELL_UTILS_H
 
 #include <limits.h>
-#include "../core/constants.h"
+#include "colors.h"
+#include "../shell/exceptions.h"
 
 #if UCHAR_MAX == 255
     typedef unsigned char uint8;
@@ -37,5 +38,18 @@
 ALLEGRO_COLOR get_allegro_color(Color color);
 void print_error(Exception ex);
 int file_exists(const char* path);
+void read_config_file_to_global_config(void);
+
+typedef struct {
+    const uint8 code;
+    const uint8 value_size;
+} Setting;
+
+typedef struct {
+    uint8 columns;
+    uint8 rows;
+    uint8 colors;
+    uint8 moves;
+} Configuration;
 
 #endif

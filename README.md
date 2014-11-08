@@ -23,9 +23,17 @@ Licensed under MIT License.
 
 ## Timeline
 
+##### November 7, 2014
+
+Struct to hold global configuration and a prototype for storing it. Also a function to read it. 
+
+Added the colors to be selected on the left side of the board, and the main menu is now navigable (though only new game can be selected for now).
+
+![screenshot number three](/screenshots/screenshot3.png?raw=true "Updated Matrix")
+
 ##### November 1, 2014
 
-Menu struct with varying size. If I do have the time later, I intend to implement mouse support, resizing, relative positioning and relative size and stuff like that. Since I didn't want to use something more besides allegro, I'll have to do some gymnastics with bitmaps for that, and the menu won't be super high wuality, but at least it will resize with the window. For now it's absolute positioning though. Beauty come later, functionalities first.
+Menu struct with varying size. If I do have the time later, I intend to implement mouse support, resizing, relative positioning and relative size and stuff like that. Since I didn't want to use something more besides allegro, I'll have to do some gymnastics with bitmaps for that, and the menu won't be super high quality, but at least it will resize with the window. For now it's absolute positioning though. Beauty come later, functionalities first.
 
 ![screenshot number two](/screenshots/screenshot2.png?raw=true "Menus")
 

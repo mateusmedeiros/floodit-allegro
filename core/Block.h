@@ -7,6 +7,7 @@
 
 typedef struct Block {
     ALLEGRO_COLOR color;
+    Color color_code;
     struct Block* up;
     struct Block* right;
     struct Block* left;

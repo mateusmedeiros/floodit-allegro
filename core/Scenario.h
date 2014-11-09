@@ -6,11 +6,14 @@
 
 #include "Block.h"
 #include "../shell/utils.h"
+#include "../shell/colors.h"
 #include "../allegro-shell/Display.h"
 
 typedef struct Scenario {
     uint8 number_of_colors;
     uint8 number_of_moves;
+    uint8 selected_color;
+    uint8 current_move;
     ALLEGRO_FONT* font;
 
     struct size {
@@ -21,6 +24,7 @@ typedef struct Scenario {
     Block* first_block;
     Display* display;
 
+    void (*flood)(struct Scenario*, Color);
     void (*destroy)(void*);
     void (*draw_to_display)(void*);
 } Scenario;

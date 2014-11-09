@@ -14,36 +14,49 @@
 void __Scenario_draw_to_display__(void* self) {
     int board_pos_x;
     Block* current_block;
+    ALLEGRO_USTR* moves_string;
     int i;
 
+    /* calculate size of each block based on the display size and the MATRIX_BOARD_SIZE
+     * constant (that defines the width of the black bar in float notation)            */
     int pixels_per_block_x = ((((Scenario*)self) -> display -> width(((Scenario*)self) -> display) * MATRIX_BOARD_SIZE) / ((Scenario*)self) -> size.x) + 1;
     int pixels_per_block_y = ((((Scenario*)self) -> display -> height(((Scenario*)self) -> display) / ((Scenario*)self) -> size.y)) + 1;
 
+    /* set draw target to be the display */
     al_set_target_backbuffer(((Scenario*)self) -> display -> inner_display);
 
-    /* interface */
+    /* draw black bar */
     al_set_clipping_rectangle(0, 0, (1 - MATRIX_BOARD_SIZE + 0.01) * ((Scenario*)self) -> display -> width(((Scenario*)self) -> display), ((Scenario*)self) -> display -> height(((Scenario*)self) -> display));
-    al_clear_to_color(al_map_rgba(39,40,34,0));
+    al_clear_to_color(get_allegro_color(BACKGROUND_COLOR));
 
+    /* draw score */
     al_draw_text(((Scenario*)self) -> font, get_allegro_color(WHITE),
                  (((Scenario*)self)-> display -> width(((Scenario*)self) -> display) * (1.0 - MATRIX_BOARD_SIZE) * 0.9), 15, ALLEGRO_ALIGN_RIGHT, "281080");
 
-    al_draw_text(((Scenario*)self) -> font, get_allegro_color(WHITE),
-                 (((Scenario*)self)-> display -> width(((Scenario*)self) -> display) * (1.0 - MATRIX_BOARD_SIZE) * 0.4), 15, ALLEGRO_ALIGN_RIGHT, "12/25");
+    /* draw number of moves */
+    moves_string = al_ustr_newf("%d/%d", ((Scenario*)self) -> current_move, ((Scenario*)self) -> number_of_moves);
+    al_draw_ustr(((Scenario*)self) -> font, get_allegro_color(WHITE),
+                 (((Scenario*)self)-> display -> width(((Scenario*)self) -> display) * (1.0 - MATRIX_BOARD_SIZE) * 0.4), 15, ALLEGRO_ALIGN_RIGHT, moves_string);
+    al_ustr_free(moves_string);
 
-
+    /* draw blocks in the black bar (including selection box) */
     for(i = 0; i < configuration.colors; i++) {
-        al_set_clipping_rectangle(((((Scenario*)self)-> display -> width(((Scenario*)self) -> display) * (1.0 - MATRIX_BOARD_SIZE) - pixels_per_block_x) / 2),
-                                  (pixels_per_block_y + 20) * (1 + i), pixels_per_block_x, pixels_per_block_y);
+        uint16 x = ((((Scenario*)self)-> display -> width(((Scenario*)self) -> display) * (1.0 - MATRIX_BOARD_SIZE) - pixels_per_block_x) / 2);
+        uint16 y = (pixels_per_block_y + 20) * (1 + i);
+
+        if(i == ((Scenario*) self) -> selected_color) {
+            al_set_clipping_rectangle(x - 3, y - 3, pixels_per_block_x + 6, pixels_per_block_y + 6);
+            al_clear_to_color(get_allegro_color(YELLOW));
+            al_set_clipping_rectangle(x - 1, y - 1, pixels_per_block_x + 2, pixels_per_block_y + 2);
+            al_clear_to_color(get_allegro_color(BACKGROUND_COLOR));
+        }
+        al_set_clipping_rectangle(x, y, pixels_per_block_x, pixels_per_block_y);
         al_clear_to_color(get_allegro_color(Colors[i]));
     }
 
-
-
+    /* draw the block matrix / board */
     board_pos_x = ((Scenario*)self) -> display -> width(((Scenario*)self) -> display) - (((Scenario*)self) -> display -> width(((Scenario*)self) -> display) * MATRIX_BOARD_SIZE);
-
     current_block = ((Scenario*)self) -> first_block;
-
     for(i = 0; i < ((Scenario*)self) -> size.y; i++) {
         Block* current_column = current_block;
         int j;
@@ -55,28 +68,40 @@ void __Scenario_draw_to_display__(void* self) {
             al_clear_to_color(current_column -> color);
             current_column = current_column -> right;
         }
-
         current_block = current_block -> down;
     }
 
+    /* acknowledge resize is needed for the display to update width and height info at resizing */
     al_acknowledge_resize(((Scenario*)self) -> display -> inner_display);
+}
+
+void __Scenario_flood_r__(Block* block, Color original, Color desired) {
+    if(block == NULL || block -> color_code != original) {
+        return;
+    }
+
+    block -> color = get_allegro_color(desired);
+    block -> color_code = desired;
+
+    __Scenario_flood_r__(block -> right, original, desired);
+    __Scenario_flood_r__(block -> left, original, desired);
+    __Scenario_flood_r__(block -> up, original, desired);
+    __Scenario_flood_r__(block -> down, original, desired);
+}
+
+void __Scenario_flood__(Scenario* self, Color color) {
+    __Scenario_flood_r__(self -> first_block, self -> first_block -> color_code, color);
 }
 
 
 void __Scenario_destroy__(void* self) {
-    int i;
-    for(i = 0; i < ((Scenario*)self) -> size.y; i++) {
-        Block* current_column = ((Scenario*)self) -> first_block;
+    Block* current_row;
+    for(current_row = ((Scenario*)self) -> first_block; current_row != NULL; current_row = current_row -> down) {
 
-        Block* first_block_below_current_column = current_column -> down;
-        int j;
-        for(j = 0; j < ((Scenario*)self) -> size.x - 1; j++) {
-            current_column = current_column -> right;
-            current_column -> left -> destroy(current_column);
+        Block* current_col;
+        for(current_col = current_row; current_col != NULL; current_col = current_col -> right) {
+            current_col -> destroy(current_col);
         }
-        current_column -> destroy(current_column);
-
-        current_column = first_block_below_current_column;
     }
 
     free((Scenario*)self);
@@ -86,14 +111,16 @@ void __Scenario_destroy__(void* self) {
 
 Scenario* new_Scenario(uint8 columns, uint8 rows, uint8 number_of_colors, uint8 number_of_moves, Display* display) {
     Scenario* object = malloc(sizeof(Scenario));
-    Block* current_block;
+    Block* first_on_current_row;
     ALLEGRO_FONT* font;
-    int i;
+    uint8 row_it;
 
     object -> number_of_colors = number_of_colors;
     object -> number_of_moves = number_of_moves;
     object -> size.x = columns;
     object -> size.y = rows;
+    object -> selected_color = 0;
+    object -> current_move = 1;
 
     if(!file_exists(DEFAULT_FONT_PATH)){
         throw(NECESSARY_RESOURCE_NOT_FOUND);
@@ -109,21 +136,34 @@ Scenario* new_Scenario(uint8 columns, uint8 rows, uint8 number_of_colors, uint8 
     object -> display = display;
     object -> font = font;
 
-    current_block = object -> first_block;
+    first_on_current_row = object -> first_block;
 
-    for(i = 0; i < rows; i++) {
-        Block* current_column = current_block;
-        int j;
-        for(j = 0; j < columns - 1; j++) {
-            current_column -> right = new_Block (Colors[mt_lrand() % number_of_colors], NULL, NULL, NULL, NULL);
-            current_column = current_column -> right;
-        }
-        if(i != rows - 1) {
-            current_block -> down = new_Block (Colors[mt_lrand() % number_of_colors], NULL, NULL, NULL, NULL);
-            current_block = current_block -> down;
+    for(row_it = 0; row_it < rows; row_it++, first_on_current_row = first_on_current_row -> down) {
+        Block* above_next_column_block;
+        Block* current_column = first_on_current_row;
+        uint8 column_it;
+
+        for(column_it = 0; column_it < columns - 1; column_it++, current_column = current_column -> right) {
+            if(row_it == 0) {
+                current_column -> right = new_Block (Colors[mt_lrand() % number_of_colors], NULL, NULL, NULL, current_column);
+            } else {
+                uint8 k;
+                above_next_column_block = first_on_current_row -> up;
+
+                for(k = 0; k <= column_it; k++) {
+                    above_next_column_block = above_next_column_block -> right;
+                }
+                current_column -> right = new_Block (Colors[mt_lrand() % number_of_colors], above_next_column_block, NULL, NULL, current_column);
+                above_next_column_block -> down = current_column -> right;
+            }
+
+            if(column_it == 0 && row_it != rows - 1) {
+                first_on_current_row -> down = new_Block (Colors[mt_lrand() % number_of_colors], first_on_current_row, NULL, NULL, NULL);
+            }
         }
     }
 
+    object -> flood = __Scenario_flood__;
     object -> draw_to_display = __Scenario_draw_to_display__;
     object -> destroy = __Scenario_destroy__;
 

@@ -103,6 +103,7 @@ void read_config_file_to_global_config(void) {
                 *((&configuration.columns) + j) = *(((uint8*)value) + j);
             }
             free(value);
+            value = NULL;
         } else if (config_code == SETTING_ROWS.code) {
             int j;
             void* value = malloc(SETTING_ROWS.value_size);
@@ -111,6 +112,7 @@ void read_config_file_to_global_config(void) {
                 *((&configuration.rows) + j) = *(((uint8*)value) + j);
             }
             free(value);
+            value = NULL;
         } else if(config_code == SETTING_NUMBER_OF_COLORS.code) {
             int j;
             void* value = malloc(SETTING_NUMBER_OF_COLORS.value_size);
@@ -119,6 +121,7 @@ void read_config_file_to_global_config(void) {
                 *((&configuration.colors) + j) = *(((uint8*)value) + j);
             }
             free(value);
+            value = NULL;
         } else if(config_code == SETTING_NUMBER_OF_MOVES.code) {
             int j;
             void* value = malloc(SETTING_NUMBER_OF_MOVES.value_size);
@@ -127,6 +130,7 @@ void read_config_file_to_global_config(void) {
                 *((&configuration.moves) + j) = *(((uint8*)value) + j);
             }
             free(value);
+            value = NULL;
         } else {
             fclose(ptr);
             throw(WRONG_FILETYPE_EXCEPTION);

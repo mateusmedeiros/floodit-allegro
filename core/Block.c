@@ -5,6 +5,10 @@
 #include "Block.h"
 
 void __Block_destroy__(void* self) {
+    ((Block*)self) -> up = NULL;
+    ((Block*)self) -> down = NULL;
+    ((Block*)self) -> left = NULL;
+    ((Block*)self) -> right = NULL;
     free((Block*)self);
     self = NULL;
 }
@@ -18,6 +22,7 @@ Block* new_Block(Color color, Block* up, Block* down, Block* right, Block* left)
                                               (color & 0x0000FF00) >> 8,  /* B */
                                               (color & 0x000000FF) >> 0); /* A */
     object -> color = allegro_color;
+    object -> color_code = color;
     object -> up = up;
     object -> down = down;
     object -> right = right;

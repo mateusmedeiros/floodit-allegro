@@ -14,4 +14,6 @@ extern const Setting SETTING_ROWS;
 extern const Setting SETTING_NUMBER_OF_COLORS;
 extern const Setting SETTING_NUMBER_OF_MOVES;
 
+typedef enum DisplayState { MAIN_MENU, SCENARIO, CONFIG_MENU, PAUSE_MENU} DisplayState;
+
 #endif

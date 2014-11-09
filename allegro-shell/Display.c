@@ -57,6 +57,7 @@ Display* new_Display(int width, int height) {
     object -> draw = __Display_draw__;
     object -> drawing_routine = NULL;
     object -> object_to_be_drawn = NULL;
+    object -> current_state = MAIN_MENU;
 
     return object;
 }

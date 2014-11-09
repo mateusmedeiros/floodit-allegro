@@ -18,13 +18,13 @@ void __Menu_draw_to_display__(void* self) {
     int i;
     ALLEGRO_COLOR color;
 
-    al_clear_to_color(al_map_rgba(0,0,0,0));
+    al_clear_to_color(get_allegro_color(BACKGROUND_COLOR));
 
     for(i = 0; i < (((Menu*)self) -> number_of_entries); i++) {
         if(i == ((Menu*)self) -> selected_entry) {
-            color = al_map_rgba(220, 220, 0, 0);
+            color = get_allegro_color(YELLOW);
         } else {
-            color = al_map_rgba(255, 255, 255, 0);
+            color = get_allegro_color(WHITE);
         }
 
         al_draw_text(((Menu*)self) -> font, color, 150, i * 50, ALLEGRO_ALIGN_LEFT, ((Menu*)self) -> entries[i]);

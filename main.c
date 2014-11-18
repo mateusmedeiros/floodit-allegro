@@ -14,7 +14,7 @@ Display* display = NULL;
 Configuration configuration;
 
 int process_main_menu_keypresses(Menu*, EventQueue*, Scenario**);
-int process_scenario_keypresses(Scenario*, EventQueue*);
+int process_scenario_keypresses(Scenario**, EventQueue*, Menu**);
 
 int main(void) {
     EventQueue* queue = NULL;
@@ -22,7 +22,7 @@ int main(void) {
     Exception exception;
     Menu* main_menu = NULL;
 
-    if(!(exception = setjmp(__exception_buffer))) {
+    try(exception) {
         init();
 
         display = new_Display(800, 600);
@@ -39,7 +39,7 @@ int main(void) {
                 if(display -> current_state == MAIN_MENU) {
                     if(process_main_menu_keypresses(main_menu, queue, &scenario)) { break; }
                 } else if(display -> current_state == SCENARIO) {
-                    if(process_scenario_keypresses(scenario, queue)) { break; }
+                    if(process_scenario_keypresses(&scenario, queue, &main_menu)) { break; }
                 }
             }
 
@@ -58,16 +58,16 @@ int main(void) {
 
     /* cleanup */
     if(display != NULL) {
-        display -> destroy(display);
+        display -> destroy(&display);
     }
     if(main_menu != NULL) {
-        main_menu -> destroy(main_menu);
+        main_menu -> destroy(&main_menu);
     }
     if(queue != NULL) {
-        queue -> destroy(queue);
+        queue -> destroy(&queue);
     }
     if(scenario != NULL) {
-        scenario -> destroy(scenario);
+        scenario -> destroy(&scenario);
     }
 
     return exception;
@@ -107,76 +107,63 @@ int process_main_menu_keypresses(Menu* menu, EventQueue* queue, Scenario** scena
     return 0;
 }
 
-int process_scenario_keypresses(Scenario* scenario, EventQueue* queue) {
+#define flood_color(color) \
+if((*scenario) -> first_block -> color_code != Colors[color]) {\
+    (*scenario) -> current_move += 1;\
+    (*scenario) -> flood((*scenario), Colors[color]);\
+    if((*scenario) -> state == STATE_WON || (*scenario) -> state == STATE_LOST) {\
+        (*scenario) -> destroy(scenario);\
+        display -> set_drawing_routine(display, (*main_menu) -> draw_to_display, *main_menu);\
+        display -> current_state = MAIN_MENU;\
+    }\
+}
+
+int process_scenario_keypresses(Scenario** scenario, EventQueue* queue, Menu** main_menu) {
     switch(queue -> current_event.keyboard.keycode) {
     case ALLEGRO_KEY_UP:
-        if(scenario -> selected_color > 0) {
-            scenario -> selected_color -= 1;
+        if((*scenario) -> selected_color > 0) {
+            (*scenario) -> selected_color -= 1;
         }
         break;
 
     case ALLEGRO_KEY_DOWN:
-        if(scenario -> selected_color < scenario -> number_of_colors - 1) {
-            scenario -> selected_color += 1;
+        if((*scenario) -> selected_color < (*scenario) -> number_of_colors - 1) {
+            (*scenario) -> selected_color += 1;
         }
         break;
 
     case ALLEGRO_KEY_ENTER:
-        switch(scenario -> selected_color) {
+        switch((*scenario) -> selected_color) {
         case 0:
-            if(scenario -> first_block -> color_code != Colors[0]) {
-                scenario -> flood(scenario, Colors[0]);
-                scenario -> current_move += 1;
-            }
+            flood_color(0);
             break;
 
         case 1:
-            if(scenario -> first_block -> color_code != Colors[1]) {
-                scenario -> flood(scenario, Colors[1]);
-                scenario -> current_move += 1;
-            }
+            flood_color(1);
             break;
 
         case 2:
-            if(scenario -> first_block -> color_code != Colors[2]) {
-                scenario -> flood(scenario, Colors[2]);
-                scenario -> current_move += 1;
-            }
+            flood_color(2);
             break;
 
         case 3:
-            if(scenario -> first_block -> color_code != 3) {
-                scenario -> flood(scenario, Colors[3]);
-                scenario -> current_move += 1;
-            }
+            flood_color(3);
             break;
 
         case 4:
-            if(scenario -> first_block -> color_code != Colors[4]) {
-                scenario -> flood(scenario, Colors[4]);
-                scenario -> current_move += 1;
-            }
+            flood_color(4);
             break;
 
         case 5:
-            if(scenario -> first_block -> color_code != Colors[5]) {
-                scenario -> flood(scenario, Colors[5]);
-                scenario -> current_move += 1;
-            }
+            flood_color(5);
             break;
 
         case 6:
-            if(scenario -> first_block -> color_code != Colors[6]) {
-                scenario -> flood(scenario, Colors[6]);
-                scenario -> current_move += 1;
-            }
+            flood_color(6);
             break;
 
         case 7:
-            if(scenario -> first_block -> color_code != Colors[7]) {
-                scenario -> flood(scenario, Colors[7]);
-                scenario -> current_move += 1;
-            }
+            flood_color(7);
             break;
 
         }

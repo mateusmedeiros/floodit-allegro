@@ -13,7 +13,7 @@ typedef struct Display {
     int width_value;
     DisplayState current_state;
 
-    void (*destroy)(void*);
+    void (*destroy)(struct Display**);
     void (*draw)(struct Display*);
 
     void (*set_drawing_routine)(struct Display* self, void (*drawing_function)(void*), void* object_to_be_drawn);

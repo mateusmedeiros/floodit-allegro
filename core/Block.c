@@ -4,13 +4,13 @@
 
 #include "Block.h"
 
-void __Block_destroy__(void* self) {
-    ((Block*)self) -> up = NULL;
-    ((Block*)self) -> down = NULL;
-    ((Block*)self) -> left = NULL;
-    ((Block*)self) -> right = NULL;
-    free((Block*)self);
-    self = NULL;
+void __Block_destroy__(Block** self) {
+    (*self) -> up = NULL;
+    (*self) -> down = NULL;
+    (*self) -> left = NULL;
+    (*self) -> right = NULL;
+    free(*self);
+    *self = NULL;
 }
 
 

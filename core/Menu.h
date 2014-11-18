@@ -16,7 +16,7 @@ typedef struct Menu {
 
     Display* display;
 
-    void (*destroy)(void*);
+    void (*destroy)(struct Menu**);
     void (*draw_to_display)(void*);
 } Menu;
 

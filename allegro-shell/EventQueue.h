@@ -10,7 +10,7 @@ typedef struct EventQueue {
 
     void (*add_source)(struct EventQueue*, ALLEGRO_EVENT_SOURCE*);
     void (*wait_for_event)(struct EventQueue*);
-    void (*destroy)(void*);
+    void (*destroy)(struct EventQueue**);
 } EventQueue;
 
 EventQueue* new_EventQueue(Display*);

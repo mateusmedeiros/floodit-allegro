@@ -13,15 +13,15 @@ void __EventQueue_add_source__(EventQueue* self, ALLEGRO_EVENT_SOURCE* source) {
     al_register_event_source(self -> inner_queue, source);
 }
 
-void __EventQueue_destroy__(void* self) {
-    al_destroy_timer(((EventQueue*)self) -> refresh_rate_timer);
-    ((EventQueue*)self) -> refresh_rate_timer = NULL;
+void __EventQueue_destroy__(EventQueue** self) {
+    al_destroy_timer((*self) -> refresh_rate_timer);
+    (*self) -> refresh_rate_timer = NULL;
 
-    al_destroy_event_queue(((EventQueue*)self) -> inner_queue);
-    ((EventQueue*)self) -> inner_queue = NULL;
+    al_destroy_event_queue((*self) -> inner_queue);
+    (*self) -> inner_queue = NULL;
 
-    free((EventQueue*)self);
-    self = NULL;
+    free(*self);
+    *self = NULL;
 }
 
 EventQueue* new_EventQueue(Display* display) {

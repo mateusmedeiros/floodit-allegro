@@ -31,12 +31,12 @@ int __Display_width__(Display* self) {
     return al_get_display_width(self -> inner_display);
 }
 
-void __Display_destroy__(void* self) {
-    al_destroy_display(((Display*)self) -> inner_display);
-    ((Display*)self) -> inner_display = NULL;
+void __Display_destroy__(Display** self) {
+    al_destroy_display((*self) -> inner_display);
+    (*self) -> inner_display = NULL;
 
-    free((Display*)self);
-    self = NULL;
+    free(*self);
+    *self = NULL;
 }
 
 

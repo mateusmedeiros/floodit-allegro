@@ -52,4 +52,12 @@ typedef struct {
     uint8 moves;
 } Configuration;
 
+typedef enum RunningState {
+    STATE_RUNNING,
+    STATE_PAUSED,
+    STATE_WON,
+    STATE_LOST
+
+} RunningState;
+
 #endif

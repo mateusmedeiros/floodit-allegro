@@ -75,7 +75,7 @@ void __Scenario_draw_to_display__(void* self) {
     al_acknowledge_resize(((Scenario*)self) -> display -> inner_display);
 }
 
-void __Scenario_flood_r__(Block* block, Color original, Color desired) {
+void __Scenario_flood_colors__(Block* block, Color original, Color desired) {
     if(block == NULL || block -> color_code != original) {
         return;
     }
@@ -83,29 +83,52 @@ void __Scenario_flood_r__(Block* block, Color original, Color desired) {
     block -> color = get_allegro_color(desired);
     block -> color_code = desired;
 
-    __Scenario_flood_r__(block -> right, original, desired);
-    __Scenario_flood_r__(block -> left, original, desired);
-    __Scenario_flood_r__(block -> up, original, desired);
-    __Scenario_flood_r__(block -> down, original, desired);
+    __Scenario_flood_colors__(block -> right, original, desired);
+    __Scenario_flood_colors__(block -> left, original, desired);
+    __Scenario_flood_colors__(block -> up, original, desired);
+    __Scenario_flood_colors__(block -> down, original, desired);
 }
 
 void __Scenario_flood__(Scenario* self, Color color) {
-    __Scenario_flood_r__(self -> first_block, self -> first_block -> color_code, color);
-}
+    Block* current_column_block;
+    Block* current_row_block;
 
+    Color first_color = self -> first_block -> color_code;
+    __Scenario_flood_colors__(self -> first_block, first_color, color);
 
-void __Scenario_destroy__(void* self) {
-    Block* current_row;
-    for(current_row = ((Scenario*)self) -> first_block; current_row != NULL; current_row = current_row -> down) {
+    if((self -> current_move) > (self -> number_of_moves)) {
+        self -> state = STATE_LOST;
+        return;
+    }
 
-        Block* current_col;
-        for(current_col = current_row; current_col != NULL; current_col = current_col -> right) {
-            current_col -> destroy(current_col);
+    for(current_column_block = self -> first_block; current_column_block != NULL; current_column_block = current_column_block -> right) {
+        for(current_row_block = current_column_block; current_row_block != NULL; current_row_block = current_row_block -> down) {
+            if(current_row_block -> color_code != first_color) {
+                return;
+            }
         }
     }
 
-    free((Scenario*)self);
-    self = NULL;
+    self -> state = STATE_WON;
+}
+
+
+void __Scenario_destroy__(Scenario** self) {
+    Block* current_row = (*self) -> first_block;
+    while(current_row != NULL) {
+        Block* temp = current_row;
+        Block* current_col = temp;
+        current_row = current_row -> down;
+
+        while(current_col != NULL) {
+            Block* block_to_be_destroyed = current_col;
+            current_col = current_col -> right;
+            block_to_be_destroyed -> destroy(&block_to_be_destroyed);
+        }
+    }
+
+    free(*self);
+    *self = NULL;
 }
 
 

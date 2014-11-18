@@ -13,6 +13,7 @@ typedef enum Exception {
     WRONG_FILETYPE_EXCEPTION
 } Exception;
 
+#define try(exception) if(!(exception = setjmp(__exception_buffer)))
 #define throw(exception) longjmp(__exception_buffer, exception);
 
 #endif

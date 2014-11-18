@@ -14,6 +14,7 @@ typedef struct Scenario {
     uint8 number_of_moves;
     uint8 selected_color;
     uint8 current_move;
+    RunningState state;
     ALLEGRO_FONT* font;
 
     struct size {
@@ -25,7 +26,7 @@ typedef struct Scenario {
     Display* display;
 
     void (*flood)(struct Scenario*, Color);
-    void (*destroy)(void*);
+    void (*destroy)(struct Scenario**);
     void (*draw_to_display)(void*);
 } Scenario;
 

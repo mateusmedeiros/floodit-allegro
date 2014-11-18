@@ -13,7 +13,7 @@ typedef struct Block {
     struct Block* left;
     struct Block* down;
 
-    void (*destroy)(void*);
+    void (*destroy)(struct Block**);
 } Block;
 
 Block* new_Block(Color color, Block* up, Block* down, Block* right, Block* left);

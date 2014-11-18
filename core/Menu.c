@@ -18,6 +18,7 @@ void __Menu_draw_to_display__(void* self) {
     int i;
     ALLEGRO_COLOR color;
 
+    al_set_clipping_rectangle(0, 0, display -> width(display), display -> height(display));
     al_clear_to_color(get_allegro_color(BACKGROUND_COLOR));
 
     for(i = 0; i < (((Menu*)self) -> number_of_entries); i++) {
@@ -33,14 +34,14 @@ void __Menu_draw_to_display__(void* self) {
 
 
 
-void __Menu_destroy__(void* self) {
-    free(((Menu*) self) -> entries);
-    ((Menu*) self) -> entries = NULL;
+void __Menu_destroy__(Menu** self) {
+    free((*self) -> entries);
+    (*self) -> entries = NULL;
 
-    al_destroy_font(((Menu*) self) -> font);
+    al_destroy_font((*self) -> font);
 
-    free((Menu*) self);
-    self = NULL;
+    free(*self);
+    *self = NULL;
 }
 
 

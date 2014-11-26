@@ -11,11 +11,11 @@ IF (ALLEGRO_INCLUDE_DIR)
   SET(ALLEGRO_FIND_QUIETLY TRUE)
 ENDIF (ALLEGRO_INCLUDE_DIR)
 
-FIND_PATH(ALLEGRO_INCLUDE_DIR allegro.h
-  /usr/local/include/allegro5
-  /usr/include/allegro5
-  $ENV{MINGDIR}/include/allegro5
-  ${CMAKE_SOURCE_DIR}/allegro/include/allegro5
+FIND_PATH(ALLEGRO_INCLUDE_DIR allegro5
+  /usr/local/include
+  /usr/include
+  $ENV{MINGDIR}/include
+  ${CMAKE_SOURCE_DIR}/allegro/include
 )
 
 set(VERSION_NUMBER "5.1")
@@ -34,26 +34,25 @@ if(UNIX AND NOT CYGWIN)
 	ENDIF (${LIB_CHECK})
 else(UNIX AND NOT CYGWIN)
 	FIND_LIBRARY(ALLEGRO_LIBRARY
-	NAMES allegro-5.0.0-monolith-static-mt
-	allegro-5.0.1-monolith-static-mt
-	allegro-5.0.2-monolith-static-mt
-	allegro-5.0.3-monolith-static-mt
-	allegro-5.0.4-monolith-static-mt
-	allegro-5.0.5-monolith-static-mt
-	allegro-5.0.6-monolith-static-mt
-	allegro-5.0.7-monolith-static-mt
-	allegro-5.0.8-monolith-static-mt
-	allegro-5.0.9-monolith-static-mt
-	allegro-5.0.10-monolith-static-mt
-	allegro-5.0.11-monolith-static-mt
-	allegro-5.0.12-monolith-static-mt
-	allegro-5.0.13-monolith-static-mt
-	allegro-5.0.14-monolith-static-mt
-	allegro-5.0.15-monolith-static-mt
-	allegro-5.1.0-monolith-static-mt
+	NAMES allegro-5.0.0-monolith-mt
+	allegro-5.0.1-monolith-mt
+	allegro-5.0.2-monolith-mt
+	allegro-5.0.3-monolith-mt
+	allegro-5.0.4-monolith-mt
+	allegro-5.0.5-monolith-mt
+	allegro-5.0.6-monolith-mt
+	allegro-5.0.7-monolith-mt
+	allegro-5.0.8-monolith-mt
+	allegro-5.0.9-monolith-mt
+	allegro-5.0.10-monolith-mt
+	allegro-5.0.11-monolith-mt
+	allegro-5.0.12-monolith-mt
+	allegro-5.0.13-monolith-mt
+	allegro-5.0.14-monolith-mt
+	allegro-5.0.15-monolith-mt
+	allegro-5.1.0-monolith-mt
 	PATHS /usr/lib /usr/local/lib $ENV{MINGDIR}/lib ${CMAKE_SOURCE_DIR}/allegro/lib)
-	IF (NOT ${ALLEGRO_LIBRARY})
-	ENDIF (NOT ${ALLEGRO_LIBRARIES})
+	set(ALLEGRO_W ${ALLEGRO_LIBRARY})
 endif(UNIX AND NOT CYGWIN)
 
 IF (ALLEGRO_INCLUDE_DIR AND (ALLEGRO_LIBRARIES OR ALLEGRO_LIBRARY))

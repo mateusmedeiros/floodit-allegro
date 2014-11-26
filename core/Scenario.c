@@ -34,7 +34,7 @@ void __Scenario_draw_to_display__(void* self) {
                  (((Scenario*)self)-> display -> width(((Scenario*)self) -> display) * (1.0 - MATRIX_BOARD_SIZE) * 0.9), 15, ALLEGRO_ALIGN_RIGHT, "281080");
 
     /* draw number of moves */
-    moves_string = al_ustr_newf("%d/%d", ((Scenario*)self) -> current_move, ((Scenario*)self) -> number_of_moves);
+    moves_string = al_ustr_newf("%d/%d", ((Scenario*)self) -> current_move - 1, ((Scenario*)self) -> number_of_moves);
     al_draw_ustr(((Scenario*)self) -> font, get_allegro_color(WHITE),
                  (((Scenario*)self)-> display -> width(((Scenario*)self) -> display) * (1.0 - MATRIX_BOARD_SIZE) * 0.4), 15, ALLEGRO_ALIGN_RIGHT, moves_string);
     al_ustr_free(moves_string);

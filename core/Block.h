@@ -13,6 +13,7 @@ typedef struct Block {
     struct Block* left;
     struct Block* down;
 
+    void (*set_color)(struct Block*, Color);
     void (*destroy)(struct Block**);
 } Block;
 

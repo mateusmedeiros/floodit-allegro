@@ -2,8 +2,6 @@
 #define SHELL_UTILS_H
 
 #include <limits.h>
-#include "colors.h"
-#include "../shell/exceptions.h"
 
 #if UCHAR_MAX == 255
     typedef unsigned char uint8;
@@ -35,10 +33,13 @@
     typedef unsigned long uint32;
 #endif
 
+#include "colors.h"
+#include "../shell/exceptions.h"
+
+
 ALLEGRO_COLOR get_allegro_color(Color color);
 void print_error(Exception ex);
 int file_exists(const char* path);
-void read_config_file_to_global_config(void);
 
 typedef struct {
     const uint8 code;
@@ -59,5 +60,6 @@ typedef enum RunningState {
     STATE_LOST
 
 } RunningState;
+
 
 #endif

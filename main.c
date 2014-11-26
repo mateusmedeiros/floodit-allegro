@@ -4,6 +4,8 @@
 
 #include "allegro-shell/Display.h"
 #include "allegro-shell/EventQueue.h"
+#include "allegro-shell/FileDialog.h"
+#include "shell/io_utils.h"
 #include "core/constants.h"
 #include "core/Scenario.h"
 #include "core/Menu.h"
@@ -74,6 +76,8 @@ int main(void) {
 }
 
 int process_main_menu_keypresses(Menu* menu, EventQueue* queue, Scenario** scenario_to_be_created) {
+    FileDialog* fd;
+    char* file_to_load;
     switch(queue -> current_event.keyboard.keycode) {
     case ALLEGRO_KEY_UP:
         if(menu -> selected_entry > 0) {
@@ -97,6 +101,19 @@ int process_main_menu_keypresses(Menu* menu, EventQueue* queue, Scenario** scena
             display -> current_state = SCENARIO;
             break;
 
+        case 1:
+            /**scenario_to_be_created = new_Scenario(configuration.columns,configuration.rows,
+                                                  configuration.colors, configuration.moves, display);*/
+            fd = new_FileDialog("Carregar jogo salvo", "*.*;*.sav", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST | ALLEGRO_FILECHOOSER_SHOW_HIDDEN);
+            file_to_load = (char*) fd -> get_file(fd);
+            if(strcmp(file_to_load, "")) {
+                *scenario_to_be_created = read_scenario_from_file(file_to_load);
+                display -> set_drawing_routine(display, (*scenario_to_be_created) -> draw_to_display, *scenario_to_be_created);
+                display -> current_state = SCENARIO;
+            }
+
+            break;
+
         /* exit */
         case 3:
             return 1;
@@ -106,8 +123,8 @@ int process_main_menu_keypresses(Menu* menu, EventQueue* queue, Scenario** scena
 
     return 0;
 }
-
-#define flood_color(color) \
+/*
+define flood_color(color) \
 if((*scenario) -> first_block -> color_code != Colors[color]) {\
     (*scenario) -> current_move += 1;\
     (*scenario) -> flood((*scenario), Colors[color]);\
@@ -117,9 +134,49 @@ if((*scenario) -> first_block -> color_code != Colors[color]) {\
         display -> current_state = MAIN_MENU;\
     }\
 }
+*/
+
+#define flood_color(color) \
+if((*scenario) -> first_block -> color_code != Colors[color]) {\
+    (*scenario) -> current_move += 1;\
+    (*scenario) -> flood((*scenario), Colors[color]);\
+    \
+    if((*scenario) -> state == STATE_WON || (*scenario) -> state == STATE_LOST) {\
+        display -> draw(display);\
+    \
+        if((*scenario) -> state == STATE_WON) {\
+            al_show_native_message_box(display -> inner_display, "", "You won!",\
+                                   "Congratulations!",\
+                                   NULL, ALLEGRO_MESSAGEBOX_QUESTION);\
+        } else {\
+            al_show_native_message_box(display -> inner_display, "", "You lost.",\
+                                   "Sorry. Better luck next time.",\
+                                   NULL, ALLEGRO_MESSAGEBOX_QUESTION);\
+        }\
+    \
+        (*scenario) -> destroy(scenario);\
+        display -> set_drawing_routine(display, (*main_menu) -> draw_to_display, *main_menu);\
+        display -> current_state = MAIN_MENU;\
+    }\
+}
 
 int process_scenario_keypresses(Scenario** scenario, EventQueue* queue, Menu** main_menu) {
     switch(queue -> current_event.keyboard.keycode) {
+    FileDialog* fd;
+    char* file_to_load;
+
+    case ALLEGRO_KEY_ESCAPE:
+        fd = new_FileDialog("Salvar jogo", "*.*;*.sav", ALLEGRO_FILECHOOSER_SAVE | ALLEGRO_FILECHOOSER_SHOW_HIDDEN);
+        file_to_load = (char*) fd -> get_file(fd);
+        if(strcmp(file_to_load, "")) {
+            write_scenario_to_file(file_to_load, *scenario);
+            (*scenario) -> destroy(scenario);
+            display -> set_drawing_routine(display, (*main_menu) -> draw_to_display, *main_menu);
+            display -> current_state = MAIN_MENU;
+        }
+
+        break;
+
     case ALLEGRO_KEY_UP:
         if((*scenario) -> selected_color > 0) {
             (*scenario) -> selected_color -= 1;

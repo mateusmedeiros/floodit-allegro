@@ -47,7 +47,7 @@ Display* new_Display(int width, int height) {
     object -> inner_display = al_create_display(width, height);
 
     if(object -> inner_display == NULL) {
-        longjmp(__exception_buffer, ALLEGRO_COMPONENT_INITIALIZATION_FAILED);
+        throw(ALLEGRO_COMPONENT_INITIALIZATION_FAILED);
     }
 
     object -> height = __Display_height__;

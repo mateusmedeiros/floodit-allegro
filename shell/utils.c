@@ -3,6 +3,7 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_native_dialog.h>
 
+#include "../core/Scenario.h"
 #include "../core/constants.h"
 #include "../shell/exceptions.h"
 #include "../shell/colors.h"
@@ -65,76 +66,5 @@ void print_error(Exception ex) {
                                        "Unindentified exception",
                                        NULL, ALLEGRO_MESSAGEBOX_ERROR);
             break;
-    }
-}
-
-void read_config_file_to_global_config(void) {
-    FILE* ptr;
-    int i = 0;
-    uint8 header[6];
-    uint8 number_of_configs;
-
-    ptr = fopen(CONFIG_FILE_PATH, "rb");
-
-    if(ptr == NULL) {
-        throw(NECESSARY_RESOURCE_NOT_FOUND);
-    }
-
-    fread(header, sizeof(header), 1, ptr);
-
-    if(header[0] != 0x44 || header[1] != 0x4F || header[2] != 0x4F
-            || header[3] != 0x44 || header[4] != 0x41 || header[5] != 0x44) {
-        fclose(ptr);
-        throw(WRONG_FILETYPE_EXCEPTION);
-    }
-
-    fread(&number_of_configs, sizeof(number_of_configs), 1, ptr);
-
-    /* exception work needed here */
-    for(i = 0; i < number_of_configs; i++) {
-        uint8 config_code;
-        fread(&config_code, sizeof(config_code), 1, ptr);
-
-        if(config_code == SETTING_COLUMNS.code) {
-            int j;
-            void* value = malloc(SETTING_COLUMNS.value_size);
-            fread(value, SETTING_COLUMNS.value_size, 1, ptr);
-            for(j = 0; j < SETTING_COLUMNS.value_size; j++) {
-                *((&configuration.columns) + j) = *(((uint8*)value) + j);
-            }
-            free(value);
-            value = NULL;
-        } else if (config_code == SETTING_ROWS.code) {
-            int j;
-            void* value = malloc(SETTING_ROWS.value_size);
-            fread(value, SETTING_ROWS.value_size, 1, ptr);
-            for(j = 0; j < SETTING_ROWS.value_size; j++) {
-                *((&configuration.rows) + j) = *(((uint8*)value) + j);
-            }
-            free(value);
-            value = NULL;
-        } else if(config_code == SETTING_NUMBER_OF_COLORS.code) {
-            int j;
-            void* value = malloc(SETTING_NUMBER_OF_COLORS.value_size);
-            fread(value, SETTING_NUMBER_OF_COLORS.value_size, 1, ptr);
-            for(j = 0; j < SETTING_NUMBER_OF_COLORS.value_size; j++) {
-                *((&configuration.colors) + j) = *(((uint8*)value) + j);
-            }
-            free(value);
-            value = NULL;
-        } else if(config_code == SETTING_NUMBER_OF_MOVES.code) {
-            int j;
-            void* value = malloc(SETTING_NUMBER_OF_MOVES.value_size);
-            fread(value, SETTING_NUMBER_OF_MOVES.value_size, 1, ptr);
-            for(j = 0; j < SETTING_NUMBER_OF_MOVES.value_size; j++) {
-                *((&configuration.moves) + j) = *(((uint8*)value) + j);
-            }
-            free(value);
-            value = NULL;
-        } else {
-            fclose(ptr);
-            throw(WRONG_FILETYPE_EXCEPTION);
-        }
-
     }
 }

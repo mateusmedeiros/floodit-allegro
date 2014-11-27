@@ -75,6 +75,7 @@ void __Scenario_draw_to_display__(void* self) {
     al_acknowledge_resize(((Scenario*)self) -> display -> inner_display);
 }
 
+/* The recursive function to make the flood */
 void __Scenario_flood_colors__(Block* block, Color original, Color desired) {
     if(block == NULL || block -> color_code != original) {
         return;
@@ -89,6 +90,8 @@ void __Scenario_flood_colors__(Block* block, Color original, Color desired) {
     __Scenario_flood_colors__(block -> down, original, desired);
 }
 
+/* A wrapper that calls the true flood function and also do verifications on the state of the board
+ * and if the game has been won or lost */
 void __Scenario_flood__(Scenario* self, Color color) {
     Block* current_column_block;
     Block* current_row_block;

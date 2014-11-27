@@ -5,6 +5,7 @@
 
 typedef void (*DrawingRoutine)(void*);
 
+/* This should just encapsulate and abstract an equivalent struct in allegro (ALLEGRO_DISPLAY) */
 typedef struct Display {
     ALLEGRO_DISPLAY* inner_display;
     DrawingRoutine drawing_routine;

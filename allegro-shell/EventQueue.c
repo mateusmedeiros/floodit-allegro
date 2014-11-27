@@ -24,6 +24,7 @@ void __EventQueue_destroy__(EventQueue** self) {
     *self = NULL;
 }
 
+/* The EventQueue will automatically add the keyboard event source and the timer (synchronized with the display refresh rate) */
 EventQueue* new_EventQueue(Display* display) {
     EventQueue* object = malloc(sizeof(EventQueue));
     ALLEGRO_TIMER* timer;

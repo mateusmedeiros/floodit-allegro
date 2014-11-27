@@ -3,6 +3,8 @@
 
 #include <limits.h>
 
+/* Not really necessary, but just to be hackish. Great excuse, I know. */
+
 #if UCHAR_MAX == 255
     typedef unsigned char uint8;
 #elif USHRT_MAX == 255
@@ -37,15 +39,20 @@
 #include "../shell/exceptions.h"
 
 
+/* Will return an ALLEGRO_COLOR of the color especified on the argument */
 ALLEGRO_COLOR get_allegro_color(Color color);
+
+/* Show native dialog messages when something goes wrong. */
 void print_error(Exception ex);
 int file_exists(const char* path);
 
+/* Abstract a setting, including how much bytes it should use on the config.dad */
 typedef struct {
     const uint8 code;
     const uint8 value_size;
 } Setting;
 
+/* This is the global configuration, note the difference between the current configuration and a single setting.*/
 typedef struct {
     uint8 columns;
     uint8 rows;
@@ -53,6 +60,7 @@ typedef struct {
     uint8 moves;
 } Configuration;
 
+/* An enum to abstract the state of the game */
 typedef enum RunningState {
     STATE_RUNNING,
     STATE_PAUSED,

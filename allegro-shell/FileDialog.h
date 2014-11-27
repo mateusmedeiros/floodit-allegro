@@ -4,6 +4,7 @@
 #include <allegro5/allegro_native_dialog.h>
 #include "../core/constants.h"
 
+/* This should just encapsulate and abstract an equivalent struct in allegro (ALLEGRO_FILECHOOSER) */
 typedef struct FileDialog {
     ALLEGRO_FILECHOOSER* inner_dialog;
 

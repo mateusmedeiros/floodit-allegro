@@ -9,6 +9,8 @@
 #include "../shell/colors.h"
 #include "../allegro-shell/Display.h"
 
+/* Basically keeps the info of a game current being played 
+ * the font is for drawing the score and moves available */
 typedef struct Scenario {
     uint8 number_of_colors;
     uint8 number_of_moves;

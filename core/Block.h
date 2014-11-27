@@ -5,6 +5,7 @@
 
 #include "../shell/colors.h"
 
+/* The matrix is made with the pointers. There's NO matrix on Scenario ! */
 typedef struct Block {
     ALLEGRO_COLOR color;
     Color color_code;

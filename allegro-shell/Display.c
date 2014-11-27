@@ -5,7 +5,9 @@
 
 #include "Display.h"
 
-
+/* Note that this will draw something without really caring about what it is. 
+ * This way I can just call this function at the end of the main loop and it will draw whatever it was supposed
+ * to be drawn */
 void __Display_draw__(Display* self) {
     if(self -> drawing_routine == NULL || self -> object_to_be_drawn == NULL) {
         al_show_native_message_box(self -> inner_display, "Error", "Error",

@@ -3,6 +3,8 @@
 
 #include <allegro5/allegro.h>
 
+/* This will store any color with two bytes for every part of the color.
+ * There is a function to convert that to an ALLEGRO_COLOR in utils.c */
 typedef enum Color {
                                /*R G B A*/
     RED                 = (int)0xF0322F00,
@@ -16,6 +18,7 @@ typedef enum Color {
     BACKGROUND_COLOR    = (int)0x27282200
 } Color;
 
+/* A global array of colors so it can be easily used to generate random colors */
 extern const Color Colors[];
 
 #endif

@@ -14,6 +14,7 @@
 #include "../global.h"
 
 
+/* It will just draw it in any dumb way for now */
 void __Menu_draw_to_display__(void* self) {
     int i;
     ALLEGRO_COLOR color;
@@ -44,7 +45,8 @@ void __Menu_destroy__(Menu** self) {
     *self = NULL;
 }
 
-
+/* This should not only keep all the stringss passed to the constructor as menu for the items, but it 
+ * will also calculate the amount of entries and store with it. The font is automatically loaded here and stored inside the Menu struct */
 Menu* new_Menu(Display* display, ...) {
 
     va_list arguments;

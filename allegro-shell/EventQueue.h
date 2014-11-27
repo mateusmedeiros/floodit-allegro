@@ -3,6 +3,7 @@
 
 #include "Display.h"
 
+/* This should just encapsulate and abstract an equivalent struct in allegro (ALLEGRO_EVENT_QUEUE) */
 typedef struct EventQueue {
     ALLEGRO_EVENT_QUEUE* inner_queue;
     ALLEGRO_EVENT current_event;
